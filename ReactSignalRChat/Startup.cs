@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SignalRChat.Hubs;
+using ReactSignalRChat.Hubs;
 
 namespace ReactSignalRChat
 {
@@ -23,7 +24,10 @@ namespace ReactSignalRChat
         {
 
             services.AddControllersWithViews();
-            services.AddSignalR().AddHubOptions<ChatHub>(options => {options.EnableDetailedErrors = true;});
+            services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions{
+                SizeLimit = 100 
+            }));
+            services.AddSignalR().AddHubOptions<MessageHub>(options => {options.EnableDetailedErrors = true;});
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -56,7 +60,7 @@ namespace ReactSignalRChat
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
-                endpoints.MapHub<ChatHub>("/chat");
+                endpoints.MapHub<MessageHub>("/MessageHub");
             });
 
             app.UseSpa(spa =>
