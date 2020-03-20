@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json.Linq;
 using ReactSignalRChat.Hubs;
 
 namespace ReactSignalRChat.Controllers
@@ -55,14 +57,30 @@ namespace ReactSignalRChat.Controllers
         }
 
         [HttpGet("{id}")]
-        public Task<Guid> GetMatch(string id)
+        public Task<MatchResult> GetMatch(string id)
         {
+
             var entry = _cache.Get(id) as IEnumerable<PlateRead>;
             var match = entry.FirstOrDefault(r => r.Match == PlateMatch.Match);
+            var result = new MatchResult();
             if (match != null)
-                return Task.FromResult(match.TransactionId);
+            {
+                result.Selected = true;
+                result.MatchId = match.TransactionId;
+            }
             else
-                return Task.FromResult(Guid.Empty);
+            {
+                result.MatchId = Guid.Empty;
+                result.Selected = entry.Any(r => r.Match == PlateMatch.Unmatch);
+            }
+            return Task.FromResult(result);
         }
+
+        public class MatchResult
+        {
+            public bool Selected { get; set; }
+            public Guid MatchId { get; set; }
+        }
+
     }
 }

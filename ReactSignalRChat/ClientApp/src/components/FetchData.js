@@ -44,20 +44,20 @@ export class FetchData extends Component {
 
    renderForecastsTable(reads) {
     return (
-      <table className='table' aria-labelledby="tabelLabel">
+        <table className='table' aria-labelledby="tabelLabel">
         <thead>
           <tr>
             <th>Plate</th>
-            <th>Patch Image</th>
-            <th>Overview Image</th>
+                    <th>Patch Image</th>
+                    <th className='text-center'>Overview Image</th>
           </tr>
         </thead>
         <tbody>
                 {reads.map(read =>
                     <tr key={read.transactionId} onClick={() => this.handleClick(read.transactionId)} className={(read.match == 1) ? "table-primary" :""} >
                   <td>{read.licencePlate}</td>
-                  <td><img src={'data:image/jpeg;base64,' + read.platePatch}/></td>
-                        <td><img src={'data:image/jpeg;base64,' + read.image} style={{ height: "80px" }}/></td>
+                        <td><img src={'data:image/jpeg;base64,' + read.platePatch} style={{ width: "160px" }} /></td>
+                        <td className='text-center'><img src={'data:image/jpeg;base64,' + read.image} style={{ height: "200px" }} /></td>
             </tr>
           )}
         </tbody>
@@ -71,11 +71,12 @@ export class FetchData extends Component {
       : this.renderForecastsTable(this.state.reads);
 
     return (
-      <div>
+        <div style={{}}>
             <h1 id="tabelLabel" >Which is your car?</h1>
             <p>Please select your car among the possible matches</p> 
             {contents}
-            <button className="btn btn-primary" onClick={() => this.submitMatch()}>Submit</button>
+            <button className="btn btn-primary" onClick={() => this.submitMatch(1)}>Submit</button>
+            <button className="btn btn-info float-right" onClick={() => this.submitMatch(0)}>None of these</button>
       </div>
     );
   }
@@ -86,13 +87,16 @@ export class FetchData extends Component {
     this.setState({ reads: data, loading: false });
     }
 
-    async submitMatch() {
+    async submitMatch(selected) {
+        const reads = this.state.reads
+        if (selected == 0)
+            reads.map((read) => { read.match = 0; })
         const url = 'Reads/SetMatch/' + this.state.transactionId;
-        const match = this.state.reads.find((read) => read.match == 1);
+        const match = reads.find((read) => read.match == 1);
         const response = await fetch(url, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(match)
+            body: JSON.stringify(match ? match : {})
         })
         this.setState({ reads: [], loading: true });
     }
